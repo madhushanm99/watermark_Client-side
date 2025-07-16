@@ -2,6 +2,8 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import { SubscriptionProvider } from './contexts/SubscriptionContext'
+import { NotificationProvider } from './contexts/NotificationContext'
+import { NotificationSetup } from './components/NotificationSetup'
 import { LoadingSpinner } from './components/ui/LoadingSpinner'
 
 // Pages
@@ -43,8 +45,10 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <SubscriptionProvider>
-        <Routes>
+      <NotificationProvider>
+        <NotificationSetup />
+        <SubscriptionProvider>
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={
             <PublicRoute>
@@ -113,6 +117,7 @@ function App() {
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </SubscriptionProvider>
+    </NotificationProvider>
     </div>
   )
 }

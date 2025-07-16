@@ -6,6 +6,18 @@ interface ApiError {
   errors?: Record<string, string[]>
 }
 
+// Global notification handler - will be set by the app
+let globalNotificationHandler: {
+  error: (title: string, message?: string) => void
+  success: (title: string, message?: string) => void
+  info: (title: string, message?: string) => void
+  warning: (title: string, message?: string) => void
+} | null = null
+
+export const setGlobalNotificationHandler = (handler: typeof globalNotificationHandler) => {
+  globalNotificationHandler = handler
+}
+
 interface ApiResponse<T = any> {
   data: T
   message?: string
@@ -81,6 +93,51 @@ class ApiClient {
         
         console.log('Parsed error:', error)
         
+        // Show error notification
+        if (globalNotificationHandler) {
+          let errorTitle = 'Request Failed'
+          let errorMessage = error.message
+
+          // Customize error messages based on status
+          switch (error.status) {
+            case 401:
+              errorTitle = 'Authentication Required'
+              errorMessage = 'Please log in to continue'
+              break
+            case 403:
+              errorTitle = 'Access Denied'
+              errorMessage = 'You don\'t have permission to perform this action'
+              break
+            case 404:
+              errorTitle = 'Not Found'
+              errorMessage = 'The requested resource was not found'
+              break
+            case 422:
+              errorTitle = 'Validation Error'
+              errorMessage = 'Please check your input and try again'
+              break
+            case 429:
+              errorTitle = 'Rate Limited'
+              errorMessage = 'Too many requests. Please try again later'
+              break
+            case 500:
+              errorTitle = 'Server Error'
+              errorMessage = 'Something went wrong on our end. Please try again'
+              break
+            case 503:
+              errorTitle = 'Service Unavailable'
+              errorMessage = 'The service is temporarily unavailable'
+              break
+            default:
+              if (error.status >= 500) {
+                errorTitle = 'Server Error'
+                errorMessage = 'Something went wrong on our end. Please try again'
+              }
+          }
+
+          globalNotificationHandler.error(errorTitle, errorMessage)
+        }
+        
         // Create a more specific error object
         const apiError = new Error(error.message)
         ;(apiError as any).status = error.status
@@ -99,11 +156,17 @@ class ApiClient {
       clearTimeout(timeoutId)
       
       if (error instanceof Error && error.name === 'AbortError') {
+        if (globalNotificationHandler) {
+          globalNotificationHandler.error('Request Timeout', 'The request took too long to complete. Please try again.')
+        }
         throw new Error('Request timeout')
       }
       
       // Handle network errors
       if (error instanceof TypeError) {
+        if (globalNotificationHandler) {
+          globalNotificationHandler.error('Network Error', 'Please check your internet connection and try again.')
+        }
         throw new Error('Network error - please check your connection')
       }
       
@@ -185,7 +248,11 @@ class ApiClient {
     
     if (additionalData) {
       Object.entries(additionalData).forEach(([key, value]) => {
-        formData.append(key, String(value))
+        if (typeof value === 'object' && value !== null) {
+          formData.append(key, JSON.stringify(value))
+        } else {
+          formData.append(key, String(value))
+        }
       })
     }
     

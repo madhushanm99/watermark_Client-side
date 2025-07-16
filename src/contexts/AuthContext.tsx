@@ -119,6 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData))
       navigate('/dashboard')
     } catch (error: any) {
+      console.error('Login error:', error)
       throw new Error(error.message || 'Login failed')
     } finally {
       setIsLoading(false)

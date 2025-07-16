@@ -98,6 +98,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       setSubscription(subscriptionData)
     } catch (error) {
       console.error('Failed to fetch subscription:', error)
+      // Don't show notification for subscription fetch errors as they're normal for users without subscriptions
       setSubscription(null)
     } finally {
       setSubscriptionLoading(false)

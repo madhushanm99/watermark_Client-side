@@ -171,7 +171,7 @@ export const filesApi = {
     const additionalData: Record<string, any> = {}
     
     if (uploadData.metadata) {
-      additionalData.metadata = JSON.stringify(uploadData.metadata)
+      additionalData.metadata = uploadData.metadata
     }
 
     console.log('files.ts calling apiClient.uploadFile with:', {

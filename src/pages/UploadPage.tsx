@@ -83,15 +83,7 @@ export default function UploadPage() {
   }
 
   const handleFile = useCallback(async (file: File) => {
-    console.log('handleFile called with file:', file)
-    console.log('handleFile file details:', {
-      name: file?.name,
-      size: file?.size,
-      type: file?.type,
-      lastModified: file?.lastModified,
-      fileType: typeof file,
-      fileInstanceOf: file instanceof File
-    })
+    console.log('handleFile called with file:', file.name, file.type)
     
     // Prevent duplicate processing
     if (isProcessingRef.current) {
@@ -108,15 +100,15 @@ export default function UploadPage() {
       return
     }
 
-    // Validate file type
-    if (!file.type.includes('pdf') && !file.type.includes('word') && !file.type.includes('document')) {
-      setUploadError('Please upload only PDF or DOCX files')
-      return
-    }
-
-    // Validate file size (100MB limit)
-    if (file.size > 100 * 1024 * 1024) {
-      setUploadError('File size cannot exceed 100MB')
+    // Simple validation: only check for PDF or DOC files
+    const fileName = file.name.toLowerCase()
+    const isPdf = fileName.endsWith('.pdf') || file.type === 'application/pdf'
+    const isDoc = fileName.endsWith('.doc') || fileName.endsWith('.docx') || 
+                  file.type === 'application/msword' || 
+                  file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    
+    if (!isPdf && !isDoc) {
+      setUploadError('Please upload only PDF or DOC/DOCX files')
       return
     }
 
